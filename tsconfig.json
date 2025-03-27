@@ -8,6 +8,20 @@
     },
     {
       "path": "./apps/sberhack"
+    },
+    {
+      "path": "./feature-auth"
+    },
+    {
+      "path": "./libs"
+    },
+    {
+      "path": "./libs/shared-ui"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "paths": {
+      "@sberhack/shared-ui": ["libs/shared-ui/src/index.ts"]
+    }
+  }
 }
