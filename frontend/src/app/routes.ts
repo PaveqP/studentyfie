@@ -1,5 +1,5 @@
-export enum Routes {
-    Home = '/',
+export enum ERoutes {
+    Main = '/',
     Login = '/login',
     Register = '/register',
     Dashboard = '/dashboard',

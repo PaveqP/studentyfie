@@ -1,1 +1,2 @@
-export type {RootState, AppDispatch} from "./store";
+export {store} from "./store";
+export {actions as utilActions} from "./utils.slice";

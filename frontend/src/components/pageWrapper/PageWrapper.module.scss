@@ -1,0 +1,13 @@
+.layout {
+    min-height: 100vh;
+    width: 100%;
+}
+
+.sider {
+    .ant-layout-sider {
+        &-trigger {
+            top: 0 !important;
+            bottom: auto !important;
+        }
+    }
+}
