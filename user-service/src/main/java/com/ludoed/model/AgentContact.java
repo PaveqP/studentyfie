@@ -30,6 +30,6 @@ public class AgentContact {
     private String link;
 
     @ManyToOne
-    @JoinColumn(name = "agentId")
-    private Agent agentId;
+    @JoinColumn(name = "agent_id")
+    private Agent agent;
 }

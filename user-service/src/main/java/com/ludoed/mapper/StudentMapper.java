@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class StudentMapper {
-    public Student toStudent(StudentShortDto studentShortDto, List<StudentSocial> social) {
+    public Student toStudent(StudentFullDto studentShortDto) {
         return new Student(
                 null,
                 studentShortDto.getEmail(),
@@ -58,15 +58,14 @@ public class StudentMapper {
         );
     }
 
-    public List<StudentFullDto> ToStudentsFullDtoList(List<Student> students, List<StudentSocial> socials) {
+    public List<StudentFullDto> toStudentFullDtoList(List<Student> students, List<StudentSocial> socials) {
         Map<Long, List<StudentSocial>> socialsByStudentId = socials.stream()
-                .collect(Collectors.groupingBy(StudentSocial::getStudentId));
+                .collect(Collectors.groupingBy(social -> social.getStudent().getId()));
 
         return students.stream()
                 .map(student -> {
-                    // Получаем социальные данные для текущего студента
                     List<StudentSocial> studentSocials = socialsByStudentId.getOrDefault(
-                            student.getStudentId(), Collections.emptyList());
+                            student.getId(), Collections.emptyList());
                     return toStudentFullDto(student, studentSocials);
                 })
                 .collect(Collectors.toList());

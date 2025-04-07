@@ -46,44 +46,59 @@ public class StudentServiceImpl implements StudentService {
             return new ArrayList<>();
         }
         List<StudentSocial> socials = new ArrayList<>();
-        List<StudentFullDto> students = studentMapper.toStudentFullDto()
         for (Student student : studentList) {
-            List<StudentSocial> socialsList = studentSocialRepository.findByStudentId(student.getStudentId());
-            student.setSocials(socialsList);
+            socials = studentSocialRepository.findByStudentId(student.getId());
         }
-        return studentList.stream().toList();
+        return studentMapper.toStudentFullDtoList(studentList, socials);
     }
 
     @Override
-    public StudentFullDto createStudent(StudentFullDto student) {
-        if (studentRepository.findAll().contains(student)) {
+    public StudentFullDto createStudent(StudentFullDto studentDto) {
+        if (studentRepository.findByEmail(studentDto.getEmail()).isPresent()) {
             throw new DuplicatedDataException("Этот студент уже существует.");
         }
-        studentRepository.save(student);
-        studentSocialRepository.save(student.getSocials());
-        studentsLearnRepository.save(student.getLearnInfo());
-        return student;
+
+        Student student = studentMapper.toStudent(studentDto);
+        Student savedStudent = studentRepository.save(student);
+
+        if (studentDto.getSocials() != null && !studentDto.getSocials().isEmpty()) {
+            List<StudentSocial> socials = studentDto.getSocials().stream()
+                    .peek(s -> s.setStudent(savedStudent))
+                    .toList();
+            studentSocialRepository.saveAll(socials);
+        }
+
+        if (studentDto.getLearnInfo() != null) {
+            studentsLearnRepository.save(studentDto.getLearnInfo());
+        }
+
+        return studentMapper.toStudentFullDto(savedStudent, studentDto.getSocials());
     }
 
     @Override
-    public StudentFullDto updateStudent(Long studentId, StudentFullDto student) {
-        Student updatingStudent = studentRepository.findById(studentId)
+    public StudentFullDto updateStudent(Long studentId, StudentFullDto studentDto) {
+        Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
-        Optional.ofNullable(student.getEmail()).ifPresent(updatingStudent::setEmail);
-        Optional.ofNullable(student.getAboutMe()).ifPresent(updatingStudent::setAboutMe);
-        Optional.ofNullable(student.getResumeFile()).ifPresent(updatingStudent::setResumeFile);
-        Optional.ofNullable(student.getFirstName()).ifPresent(updatingStudent::setFirstName);
-        Optional.ofNullable(student.getSurname()).ifPresent(updatingStudent::setSurname);
-        Optional.ofNullable(student.getLastName()).ifPresent(updatingStudent::setLastName);
-        Optional.ofNullable(student.getBirthDate()).ifPresent(updatingStudent::setBirthDate);
-        Optional.ofNullable(student.getAvatar()).ifPresent(updatingStudent::setAvatar);
-        List<StudentSocial> studentSocials = new ArrayList<>(student.getSocials().stream().toList());
-        studentRepository.save(updatingStudent);
-        if (!studentSocials.isEmpty()) {
-            studentSocialRepository.save(studentSocials);
-            updatingStudent.setSocials(studentSocials);
+        //List<StudentSocial> social = studentSocialRepository.findByStudentId(studentId);
+        Optional.ofNullable(studentDto.getEmail()).ifPresent(student::setEmail);
+        Optional.ofNullable(studentDto.getAboutMe()).ifPresent(student::setAboutMe);
+        Optional.ofNullable(studentDto.getResumeFile()).ifPresent(student::setResumeFile);
+        Optional.ofNullable(studentDto.getFirstName()).ifPresent(student::setFirstName);
+        Optional.ofNullable(studentDto.getSurname()).ifPresent(student::setSurname);
+        Optional.ofNullable(studentDto.getLastName()).ifPresent(student::setLastName);
+        Optional.ofNullable(studentDto.getBirthDate()).ifPresent(student::setBirthDate);
+        Optional.ofNullable(studentDto.getAvatar()).ifPresent(student::setAvatar);
+        Student updatedStudent = studentRepository.save(student);
+        List<StudentSocial> updatedSocials = new ArrayList<>();
+        if (studentDto.getSocials() != null) {
+            studentSocialRepository.deleteByStudentId(studentId);
+
+            updatedSocials = studentDto.getSocials().stream()
+                    .peek(s -> s.setStudent(student))
+                    .toList();
+            studentSocialRepository.saveAll(updatedSocials);
         }
-        return updatingStudent;
+        return studentMapper.toStudentFullDto(updatedStudent, updatedSocials);
     }
 
     @Override

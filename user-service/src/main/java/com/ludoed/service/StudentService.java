@@ -13,7 +13,7 @@ public interface StudentService {
 
     StudentFullDto createStudent(StudentFullDto student);
 
-    StudentFullDto updateStudent(Long studentId, Student student);
+    StudentFullDto updateStudent(Long studentId, StudentFullDto student);
 
     String deleteStudent(Long studentId);
 }

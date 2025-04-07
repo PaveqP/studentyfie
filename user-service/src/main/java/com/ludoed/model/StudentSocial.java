@@ -21,7 +21,8 @@ public class StudentSocial {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long socialsId;
+    @Column(name = "socials_id")
+    private Long id;
 
     @Column(name = "name")
     private String name;
@@ -31,5 +32,5 @@ public class StudentSocial {
 
     @ManyToOne
     @JoinColumn(name = "student_id")
-    private Student studentId;
+    private Student student;
 }

@@ -49,5 +49,5 @@ public class Agent {
     @Column(name = "university_id")
     private Long university; //TODO
 
-    private List<AgentContact> contacts;
+    /*private List<AgentContact> contacts;*/
 }
