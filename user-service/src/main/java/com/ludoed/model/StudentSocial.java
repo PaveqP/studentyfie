@@ -31,5 +31,5 @@ public class StudentSocial {
 
     @ManyToOne
     @JoinColumn(name = "student_id")
-    private Long studentId;
+    private Student studentId;
 }

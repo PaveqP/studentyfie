@@ -1,18 +1,19 @@
 package com.ludoed.service;
 
+import com.ludoed.dto.StudentFullDto;
 import com.ludoed.model.Student;
 import com.ludoed.model.StudentSocial;
 
 import java.util.List;
 
 public interface StudentService {
-    Student getStudentById(Long studentId);
+    StudentFullDto getStudentById(Long studentId);
 
-    List<Student> getAllStudents(int from, int size);
+    List<StudentFullDto> getAllStudents(int from, int size);
 
-    Student createStudent(Student student);
+    StudentFullDto createStudent(StudentFullDto student);
 
-    Student updateStudent(Long studentId, Student student);
+    StudentFullDto updateStudent(Long studentId, Student student);
 
     String deleteStudent(Long studentId);
 }

@@ -3,6 +3,7 @@ package com.ludoed.service;
 import com.ludoed.dao.StudentRepository;
 import com.ludoed.dao.StudentSocialRepository;
 import com.ludoed.dao.StudentsLearnRepository;
+import com.ludoed.dto.StudentFullDto;
 import com.ludoed.exception.DuplicatedDataException;
 import com.ludoed.exception.NotFoundException;
 import com.ludoed.mapper.StudentMapper;
@@ -30,20 +31,22 @@ public class StudentServiceImpl implements StudentService {
     private final StudentsLearnRepository studentsLearnRepository;
 
     @Override
-    public Student getStudentById(Long studentId) {
+    public StudentFullDto getStudentById(Long studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
-        student.setSocials(studentSocialRepository.findByStudentId(studentId));
-        return student;
+        List<StudentSocial> social = studentSocialRepository.findByStudentId(studentId);
+        return studentMapper.toStudentFullDto(student, social);
     }
 
     @Override
-    public List<Student> getAllStudents(int from, int size) {
+    public List<StudentFullDto> getAllStudents(int from, int size) {
         PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<Student> studentList = studentRepository.findAll(pageRequest).toList();
         if (studentList.isEmpty()) {
             return new ArrayList<>();
         }
+        List<StudentSocial> socials = new ArrayList<>();
+        List<StudentFullDto> students = studentMapper.toStudentFullDto()
         for (Student student : studentList) {
             List<StudentSocial> socialsList = studentSocialRepository.findByStudentId(student.getStudentId());
             student.setSocials(socialsList);
@@ -52,7 +55,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student createStudent(Student student) {
+    public StudentFullDto createStudent(StudentFullDto student) {
         if (studentRepository.findAll().contains(student)) {
             throw new DuplicatedDataException("Этот студент уже существует.");
         }
@@ -63,7 +66,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student updateStudent(Long studentId, Student student) {
+    public StudentFullDto updateStudent(Long studentId, StudentFullDto student) {
         Student updatingStudent = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
         Optional.ofNullable(student.getEmail()).ifPresent(updatingStudent::setEmail);

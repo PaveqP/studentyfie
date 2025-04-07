@@ -64,6 +64,4 @@ public class Student {
     @Lob
     @Column(name = "avatar")
     private byte[] avatar;
-
-    private List<StudentSocial> socials;
 }
