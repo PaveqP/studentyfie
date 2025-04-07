@@ -6,9 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -16,31 +14,26 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "students")
-public class Student {
+@Table(name = "agent")
+public class Agent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long studentId;
+    private Long agentId;
+
+    @Column(name = "avatar")
+    private byte[] avatar;
 
     @NotNull
     @Email
     @Column(name = "email")
     private String email;
-
-    @Column(name = "about_me")
-    private String aboutMe;
-
-    @Lob
-    @Column(name = "resume_file")
-    private byte[] resumeFile;
 
     @NotNull
     @Column(name = "first_name")
@@ -53,17 +46,10 @@ public class Student {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
+    @Column(name = "university_id")
+    private Long university; //TODO
 
-    @NotNull
-    @OneToOne
-    @JoinColumn(name = "studentLearn_id")
-    private StudentLearn learnInfo;
-
-    @Lob
-    @Column(name = "avatar")
-    private byte[] avatar;
-
-    private List<StudentSocial> socials;
+    @ManyToOne
+    @JoinColumn(name = "agentContacts_id")
+    private List<AgentContact> contacts;
 }

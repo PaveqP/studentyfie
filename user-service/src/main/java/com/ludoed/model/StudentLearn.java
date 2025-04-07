@@ -15,20 +15,23 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Table(name = "studentLearns")
-public class StudentLearns {
+public class StudentLearn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long studentLearnId;
 
     @Column(name = "university")
-    private Long university;//TODO
+    private String university;
 
     @Column(name = "course")
     private String course;
 
+    @Column(name = "course_name")
+    private String courseName;
+
     @Column(name = "program_id")
-    private Long program; //TODO
+    private String program;
 
     @Column(name = "rating")
     private Float rating;

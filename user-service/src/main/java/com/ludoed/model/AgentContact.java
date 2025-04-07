@@ -14,12 +14,12 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "studentSocials")
-public class StudentSocials {
+@Table(name = "agentContacts")
+public class AgentContact {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long socialsId;
+    private Long agentContactsId;
 
     @Column(name = "name")
     private String name;
