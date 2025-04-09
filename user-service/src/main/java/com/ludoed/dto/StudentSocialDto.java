@@ -14,6 +14,4 @@ public class StudentSocialDto {
     private String name;
 
     private String link;
-
-    private Long studentId;
 }

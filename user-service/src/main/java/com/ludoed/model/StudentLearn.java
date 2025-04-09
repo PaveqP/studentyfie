@@ -14,12 +14,13 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "studentLearns")
+@Table(name = "student_learns")
 public class StudentLearn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long studentLearnId;
+    @Column(name = "student_learn_id")
+    private Long id;
 
     @Column(name = "university")
     private String university;

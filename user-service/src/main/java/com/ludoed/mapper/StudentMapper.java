@@ -2,6 +2,7 @@ package com.ludoed.mapper;
 
 import com.ludoed.dto.StudentFullDto;
 import com.ludoed.dto.StudentShortDto;
+import com.ludoed.dto.StudentSocialDto;
 import com.ludoed.model.Student;
 import com.ludoed.model.StudentSocial;
 import org.springframework.stereotype.Component;
@@ -41,6 +42,14 @@ public class StudentMapper {
         );
     }
 
+    public StudentSocialDto toStudentSocialDto(StudentSocial social) {
+        return new StudentSocialDto(
+                social.getId(),
+                social.getName(),
+                social.getLink()
+        );
+    }
+
     public StudentFullDto toStudentFullDto(Student student, List<StudentSocial> social) {
         return new StudentFullDto(
                 null,
@@ -67,6 +76,12 @@ public class StudentMapper {
                             student.getId(), Collections.emptyList());
                     return toStudentFullDto(student, studentSocials);
                 })
+                .collect(Collectors.toList());
+    }
+
+    public List<StudentSocialDto> toStudentSocialDtoList(List<StudentSocial> socials) {
+        return socials.stream()
+                .map(this::toStudentSocialDto)
                 .collect(Collectors.toList());
     }
 }

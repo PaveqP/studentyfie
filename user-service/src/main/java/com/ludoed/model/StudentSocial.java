@@ -1,5 +1,6 @@
 package com.ludoed.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-@Table(name = "studentSocials")
+@Table(name = "student_socials")
 public class StudentSocial {
 
     @Id
@@ -30,7 +31,7 @@ public class StudentSocial {
     @Column(name = "link")
     private String link;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "student_id")
     private Student student;
 }

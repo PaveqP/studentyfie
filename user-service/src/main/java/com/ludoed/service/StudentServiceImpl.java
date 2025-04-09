@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,11 +76,11 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toStudentFullDto(savedStudent, studentDto.getSocials());
     }
 
+    @Transactional
     @Override
     public StudentFullDto updateStudent(Long studentId, StudentFullDto studentDto) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
-        //List<StudentSocial> social = studentSocialRepository.findByStudentId(studentId);
         Optional.ofNullable(studentDto.getEmail()).ifPresent(student::setEmail);
         Optional.ofNullable(studentDto.getAboutMe()).ifPresent(student::setAboutMe);
         Optional.ofNullable(studentDto.getResumeFile()).ifPresent(student::setResumeFile);
@@ -101,6 +102,7 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toStudentFullDto(updatedStudent, updatedSocials);
     }
 
+    @Transactional
     @Override
     public String deleteStudent(Long studentId) {
         if (studentId == null || studentRepository.findById(studentId).isEmpty()) {

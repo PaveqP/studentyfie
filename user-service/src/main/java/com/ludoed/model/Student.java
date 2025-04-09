@@ -1,5 +1,6 @@
 package com.ludoed.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -56,8 +57,8 @@ public class Student {
     private LocalDate birthDate;
 
     @NotNull
-    @OneToOne
-    @JoinColumn(name = "studentLearn_id")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "student_learn_id")
     private StudentLearn learnInfo;
 
     @Lob
