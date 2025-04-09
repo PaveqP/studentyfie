@@ -1,8 +1,10 @@
-import {PageWrapper} from "../../components"
+import {PageWrapper, MainHeader} from "../../components"
 
 const MainPage = () => {
     return (
-        <PageWrapper><div>...text</div></PageWrapper>
+        <PageWrapper header={<MainHeader />}>
+            <div>...text</div>
+        </PageWrapper>
     )
 }
 

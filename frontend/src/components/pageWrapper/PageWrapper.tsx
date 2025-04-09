@@ -20,7 +20,7 @@ const PageWrapper: FC<IPageWrapperProps> = ({header, children, footer}) => {
                 <SideBar collapsed={collapsed} setCollapsed = {setCollapsed}/>
             </Sider>
             <Layout>
-                {header && <Header>{header}</Header>}
+                {header && <Header className={s.header}>{header}</Header>}
                 {children && <Content>{children}</Content>}
                 {footer && <Footer>{footer}</Footer>}
             </Layout>

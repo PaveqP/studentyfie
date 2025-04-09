@@ -5,6 +5,7 @@ import s from "./SideBar.module.scss"
 import {useNavigate} from "react-router-dom"
 import {ERoutes} from "../../app"
 import {useTheme, useTypedSelector} from "../../shared"
+import cn from "classnames"
 
 interface ISideBarProps {
     collapsed: boolean;
@@ -17,7 +18,9 @@ const SideBar: FC<ISideBarProps> = ({collapsed, setCollapsed}) => {
     const isDark = useTypedSelector(state => state.util.isDark);
 
     return (
-        <Flex vertical align="center" justify="space-between" className={s.container}>
+        <Flex vertical align="center" justify="space-between" className={cn(s.container, {
+            [s.containerDark]: isDark
+        })}>
             <Flex vertical align="center" gap={20} className={s.flex}>
                 <Button
                     onClick={() => setCollapsed(!collapsed)}
@@ -36,7 +39,7 @@ const SideBar: FC<ISideBarProps> = ({collapsed, setCollapsed}) => {
                     icon={isDark ? <MoonFilled /> : <SunFilled />}
                     className={s.button}
                 >
-                    {!collapsed && <>Главная</>}
+                    {!collapsed && <>{isDark ? "Темная" : "Светлая"}</>}
                 </Button>
             </Flex>
             <Flex vertical align="center" gap={20} className={s.flex}>

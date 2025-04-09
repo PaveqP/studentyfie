@@ -2,12 +2,31 @@ import {ThemeConfig} from 'antd';
 
 export const darkTheme: ThemeConfig = {
     token: {
-        colorPrimary: '#000000',       // Основной - чёрный
-        colorBgBase: '#000000',        // Фон - чёрный
-        colorTextBase: '#ffffff',      // Текст - белый
-        colorBorder: '#424242',        // Серый для границ
-        colorLink: '#81c784',          // Светло-зелёный для ссылок
-        colorInfo: '#81c784',          // Светло-зелёный для информации
-        borderRadius: 6,
+        colorBgBase: '#202020',
+        colorTextBase: '#ffffff',
+    },
+    components: {
+        Button: {
+            defaultBg: "transparent",
+            defaultHoverBg: "#696969",
+            defaultHoverColor: "#81c784",
+            defaultActiveBg: "#696969",
+            defaultActiveColor: "#81c784",
+            defaultShadow: 'none',
+            defaultBorderColor: 'none',
+            defaultHoverBorderColor: 'none',
+            defaultActiveBorderColor: 'none',
+        },
+        Layout: {
+            headerBg: '#202020',
+            headerColor: '#ffffff',
+            headerPadding: '0 24px',
+            siderBg: '#2F2F2F',
+        },
+        Input: {
+            activeShadow: 'none',
+            activeBorderColor: '#81c784',
+            hoverBorderColor: '#ffffff',
+        }
     },
 };
