@@ -1,7 +1,6 @@
 package com.ludoed.controller;
 
 import com.ludoed.dto.StudentFullDto;
-import com.ludoed.model.Student;
 import com.ludoed.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;

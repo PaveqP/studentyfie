@@ -14,18 +14,17 @@ import java.util.stream.Collectors;
 @Component
 public class StudentMapper {
     public Student toStudent(StudentFullDto studentShortDto) {
-        return new Student(
-                null,
-                studentShortDto.getEmail(),
-                studentShortDto.getAboutMe(),
-                studentShortDto.getResumeFile(),
-                studentShortDto.getFirstName(),
-                studentShortDto.getSurname(),
-                studentShortDto.getLastName(),
-                studentShortDto.getBirthDate(),
-                studentShortDto.getLearnInfo(),
-                studentShortDto.getAvatar()
-        );
+        Student student = new Student();
+        student.setEmail(studentShortDto.getEmail());
+        student.setAboutMe(studentShortDto.getAboutMe());
+        student.setResumeFile(studentShortDto.getResumeFile());
+        student.setFirstName(studentShortDto.getFirstName());
+        student.setSurname(studentShortDto.getSurname());
+        student.setLastName(studentShortDto.getLastName());
+        student.setBirthDate(studentShortDto.getBirthDate());
+        student.setLearnInfo(studentShortDto.getLearnInfo());
+        student.setAvatar(studentShortDto.getAvatar());
+        return student;
     }
 
     public StudentShortDto toStudentShortDto(Student student) {
