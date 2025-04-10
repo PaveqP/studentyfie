@@ -52,7 +52,7 @@ public class StudentMapper {
 
     public StudentFullDto toStudentFullDto(Student student, List<StudentSocial> social) {
         return new StudentFullDto(
-                null,
+                student.getId(),
                 student.getEmail(),
                 student.getAboutMe(),
                 student.getResumeFile(),
@@ -76,12 +76,6 @@ public class StudentMapper {
                             student.getId(), Collections.emptyList());
                     return toStudentFullDto(student, studentSocials);
                 })
-                .collect(Collectors.toList());
-    }
-
-    public List<StudentSocialDto> toStudentSocialDtoList(List<StudentSocial> socials) {
-        return socials.stream()
-                .map(this::toStudentSocialDto)
                 .collect(Collectors.toList());
     }
 }

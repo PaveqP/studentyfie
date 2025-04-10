@@ -5,16 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 
 @Entity
 @Data
@@ -25,7 +21,8 @@ public class Agent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long agentId;
+    @Column(name = "agent_id")
+    private Long id;
 
     @Column(name = "avatar")
     private byte[] avatar;
@@ -48,6 +45,4 @@ public class Agent {
 
     @Column(name = "university_id")
     private Long university; //TODO
-
-    /*private List<AgentContact> contacts;*/
 }

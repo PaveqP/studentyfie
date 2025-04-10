@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface AgentContactRepository extends JpaRepository<AgentContact, Long> {
     List<AgentContact> findByAgentId(Long agentId);
+
+    void deleteByAgentId(Long agentId);
 }

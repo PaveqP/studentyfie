@@ -42,7 +42,11 @@ public class AgentServiceImpl implements AgentService {
         if (agentList.isEmpty()) {
             return new ArrayList<>();
         }
-        return agentList.stream().toList();
+        List<AgentContact> contacts = new ArrayList<>();
+        for (Agent agent : agentList) {
+            contacts = agentContactRepository.findByAgentId(agent.getId());
+        }
+        return agentMapper.toAgentFullDtoList(agentList, contacts);
     }
 
     @Override
@@ -50,25 +54,50 @@ public class AgentServiceImpl implements AgentService {
         if (agentRepository.findAll().contains(agentDto)) {
             throw new DuplicatedDataException("Этот агент уже существует.");
         }
-        return agentRepository.save(agentDto);
+
+        Agent savedAgent = agentRepository.save(agentMapper.toAgent(agentDto));
+
+        if (agentDto.getContacts() != null && !agentDto.getContacts().isEmpty()) {
+            List<AgentContact> contacts = agentDto.getContacts().stream()
+                    .peek(s -> s.setAgent(savedAgent))
+                    .toList();
+            agentContactRepository.saveAll(contacts);
+        }
+
+        return agentMapper.toAgentFullDto(savedAgent, agentDto.getContacts());
+        //return agentRepository.save(agentDto);
     }
 
     @Override
     public AgentFullDto updateAgent(Long agentId, AgentFullDto agentDto) {
-        Agent updatingAgent = agentRepository.findById(agentId)
+        Agent agent = agentRepository.findById(agentId)
                 .orElseThrow(() -> new NotFoundException("Агента с id = {} не существует." + agentId));
-        Optional.ofNullable(agentDto.getAvatar()).ifPresent(updatingAgent::setAvatar);
-        Optional.ofNullable(agentDto.getEmail()).ifPresent(updatingAgent::setEmail);
-        Optional.ofNullable(agentDto.getFirstName()).ifPresent(updatingAgent::setFirstName);
-        Optional.ofNullable(agentDto.getSurname()).ifPresent(updatingAgent::setSurname);
-        Optional.ofNullable(agentDto.getLastName()).ifPresent(updatingAgent::setLastName);
-        Optional.ofNullable(agentDto.getUniversity()).ifPresent(updatingAgent::setUniversity); //TODO
+        Optional.ofNullable(agentDto.getAvatar()).ifPresent(agent::setAvatar);
+        Optional.ofNullable(agentDto.getEmail()).ifPresent(agent::setEmail);
+        Optional.ofNullable(agentDto.getFirstName()).ifPresent(agent::setFirstName);
+        Optional.ofNullable(agentDto.getSurname()).ifPresent(agent::setSurname);
+        Optional.ofNullable(agentDto.getLastName()).ifPresent(agent::setLastName);
+        Optional.ofNullable(agentDto.getUniversity()).ifPresent(agent::setUniversity); //TODO
+        Agent updatedAgent = agentRepository.save(agent);
+        List<AgentContact> updatedContacts = new ArrayList<>();
+        if (agentDto.getContacts() != null) {
+            agentContactRepository.deleteByAgentId(agentId);
 
-        return updatingAgent;
+            updatedContacts = agentDto.getContacts().stream()
+                    .peek(s -> s.setAgent(agent))
+                    .toList();
+            agentContactRepository.saveAll(updatedContacts);
+        }
+        return agentMapper.toAgentFullDto(updatedAgent, updatedContacts);
     }
 
     @Override
     public String deleteAgent(Long agentId) {
-        return null;
+        if (agentId == null || agentRepository.findById(agentId).isEmpty()) {
+            throw new NotFoundException("Агента с id = {} не существует." + agentId);
+        }
+        agentRepository.deleteById(agentId);
+        agentContactRepository.deleteByAgentId(agentId);
+        return "Success";
     }
 }

@@ -36,9 +36,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
         List<StudentSocial> social = studentSocialRepository.findByStudentId(studentId);
-        StudentFullDto fullDto = studentMapper.toStudentFullDto(student, social);
-        fullDto.setStudentId(studentId);
-        return fullDto;
+        return studentMapper.toStudentFullDto(student, social);
     }
 
     @Override
@@ -52,9 +50,7 @@ public class StudentServiceImpl implements StudentService {
         for (Student student : studentList) {
             socials = studentSocialRepository.findByStudentId(student.getId());
         }
-        List<StudentFullDto> fullDtoList = studentMapper.toStudentFullDtoList(studentList, socials);
-        fullDtoList.setStudentId(studentId);
-        return fullDtoList;
+        return studentMapper.toStudentFullDtoList(studentList, socials);
     }
 
     @Override
@@ -63,8 +59,7 @@ public class StudentServiceImpl implements StudentService {
             throw new DuplicatedDataException("Этот студент уже существует.");
         }
 
-        Student student = studentMapper.toStudent(studentDto);
-        Student savedStudent = studentRepository.save(student);
+        Student savedStudent = studentRepository.save(studentMapper.toStudent(studentDto));
 
         if (studentDto.getSocials() != null && !studentDto.getSocials().isEmpty()) {
             List<StudentSocial> socials = studentDto.getSocials().stream()
