@@ -36,7 +36,9 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Студента с id = {} не существует." + studentId));
         List<StudentSocial> social = studentSocialRepository.findByStudentId(studentId);
-        return studentMapper.toStudentFullDto(student, social);
+        StudentFullDto fullDto = studentMapper.toStudentFullDto(student, social);
+        fullDto.setStudentId(studentId);
+        return fullDto;
     }
 
     @Override
@@ -50,7 +52,9 @@ public class StudentServiceImpl implements StudentService {
         for (Student student : studentList) {
             socials = studentSocialRepository.findByStudentId(student.getId());
         }
-        return studentMapper.toStudentFullDtoList(studentList, socials);
+        List<StudentFullDto> fullDtoList = studentMapper.toStudentFullDtoList(studentList, socials);
+        fullDtoList.setStudentId(studentId);
+        return fullDtoList;
     }
 
     @Override

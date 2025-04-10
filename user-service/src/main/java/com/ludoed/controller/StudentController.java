@@ -2,6 +2,8 @@ package com.ludoed.controller;
 
 import com.ludoed.dto.StudentFullDto;
 import com.ludoed.service.StudentService;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,10 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/students")
+@RequestMapping("/users/students")
 public class StudentController {
 
     private final StudentService studentService;
@@ -25,6 +29,12 @@ public class StudentController {
     @GetMapping("/{studentId}")
     public StudentFullDto getStudentById(@PathVariable Long studentId) {
         return studentService.getStudentById(studentId);
+    }
+
+    @GetMapping
+    public List<StudentFullDto> getAllStudents(@RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                               @RequestParam(defaultValue = "10") @Positive int size) {
+        return studentService.getAllStudents(from, size);
     }
 
     @PostMapping

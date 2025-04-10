@@ -1,17 +1,18 @@
 package com.ludoed.service;
 
+import com.ludoed.dto.AgentFullDto;
 import com.ludoed.model.Agent;
 
 import java.util.List;
 
 public interface AgentService {
-    Agent getAgentById(Long agentId);
+    AgentFullDto getAgentById(Long agentId);
 
-    List<Agent> getAllAgents(int from, int size);
+    List<AgentFullDto> getAllAgents(int from, int size);
 
-    Agent createAgent(Agent agent);
+    AgentFullDto createAgent(AgentFullDto agent);
 
-    Agent updateAgent(Long agentId, Agent agent);
+    AgentFullDto updateAgent(Long agentId, AgentFullDto agent);
 
     String deleteAgent(Long agentId);
 }
