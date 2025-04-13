@@ -6,6 +6,7 @@ import {useNavigate} from "react-router-dom"
 import {ERoutes} from "../../app"
 import {useTheme, useTypedSelector} from "../../shared"
 import cn from "classnames"
+import {useGetStudentsQuery} from "../../api";
 
 interface ISideBarProps {
     collapsed: boolean;
@@ -16,6 +17,8 @@ const SideBar: FC<ISideBarProps> = ({collapsed, setCollapsed}) => {
     const navigate = useNavigate();
     const {toggleTheme} = useTheme();
     const isDark = useTypedSelector(state => state.util.isDark);
+    const {data: students, isLoading, isError} = useGetStudentsQuery();
+    console.log(isLoading, isError, students)
 
     return (
         <Flex vertical align="center" justify="space-between" className={cn(s.container, {

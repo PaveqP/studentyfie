@@ -1,0 +1,1 @@
+export {type TStudent} from "./types"
