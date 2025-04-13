@@ -14,42 +14,19 @@ import java.util.stream.Collectors;
 
 @Component
 public class StudentMapper {
-    public Student toStudent(StudentFullDto studentShortDto) {
+    public Student toStudent(StudentFullDto studentFullDto) {
         Student student = new Student();
-        student.setEmail(studentShortDto.getEmail());
-        student.setAboutMe(studentShortDto.getAboutMe());
-        student.setResumeFile(studentShortDto.getResumeFile());
-        student.setFirstName(studentShortDto.getFirstName());
-        student.setSurname(studentShortDto.getSurname());
-        student.setLastName(studentShortDto.getLastName());
-        student.setBirthDate(studentShortDto.getBirthDate());
-        student.setLearnInfo(studentShortDto.getLearnInfo());
-        student.setAvatar(studentShortDto.getAvatar());
+        student.setEmail(studentFullDto.getEmail());
+        student.setAboutMe(studentFullDto.getAboutMe());
+        student.setResumeFile(studentFullDto.getResumeFile());
+        student.setFirstName(studentFullDto.getFirstName());
+        student.setSurname(studentFullDto.getSurname());
+        student.setLastName(studentFullDto.getLastName());
+        student.setBirthDate(studentFullDto.getBirthDate());
+        student.setLearnInfo(studentFullDto.getLearnInfo());
+        student.setAvatar(studentFullDto.getAvatar());
         return student;
     }
-
-    public StudentShortDto toStudentShortDto(Student student) {
-        return new StudentShortDto(
-                student.getEmail(),
-                student.getAboutMe(),
-                student.getResumeFile(),
-                student.getFirstName(),
-                student.getSurname(),
-                student.getLastName(),
-                student.getBirthDate(),
-                student.getLearnInfo(),
-                student.getAvatar()
-        );
-    }
-
-    public StudentSocialDto toStudentSocialDto(StudentSocial social) {
-        return new StudentSocialDto(
-                social.getId(),
-                social.getName(),
-                social.getLink()
-        );
-    }
-
     public StudentFullDto toStudentFullDto(Student student, List<StudentSocial> social) {
         return new StudentFullDto(
                 student.getId(),

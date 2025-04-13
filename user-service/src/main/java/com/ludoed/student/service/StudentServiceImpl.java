@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,14 +44,18 @@ public class StudentServiceImpl implements StudentService {
     public List<StudentFullDto> getAllStudents(int from, int size) {
         PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<Student> studentList = studentRepository.findAll(pageRequest).toList();
+
         if (studentList.isEmpty()) {
             return new ArrayList<>();
         }
-        List<StudentSocial> socials = new ArrayList<>();
-        for (Student student : studentList) {
-            socials = studentSocialRepository.findByStudentId(student.getId());
-        }
-        return studentMapper.toStudentFullDtoList(studentList, socials);
+
+        List<Long> studentIds = studentList.stream()
+                .map(Student::getId)
+                .collect(Collectors.toList());
+
+        List<StudentSocial> allSocials = studentSocialRepository.findByStudentIdIn(studentIds);
+
+        return studentMapper.toStudentFullDtoList(studentList, allSocials);
     }
 
     @Override

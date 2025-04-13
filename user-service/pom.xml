@@ -62,7 +62,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.ludoed.MainApp</mainClass>
+                    <mainClass>com.ludoed.com.ludoed.MainApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>

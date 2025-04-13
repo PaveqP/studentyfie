@@ -11,4 +11,6 @@ public interface StudentSocialRepository extends JpaRepository<StudentSocial,Lon
     List<StudentSocial> findByStudentId(Long studentId);
 
     void deleteByStudentId(Long studentId);
+
+    List<StudentSocial> findByStudentIdIn(List<Long> studentIds);
 }
