@@ -1,6 +1,7 @@
 package com.ludoed.university.mapper;
 
 import com.ludoed.university.dto.UniversityFullDto;
+import com.ludoed.university.model.ExchangeProgram;
 import com.ludoed.university.model.UniversityGeographic;
 import com.ludoed.university.model.UniversityInfo;
 import com.ludoed.university.model.UniversitySocials;
@@ -24,13 +25,16 @@ public class UniversityMapper {
         return universityInfo;
     }
 
-    public UniversityFullDto toUniversityFullDto(UniversityInfo universityInfo, UniversityGeographic geographic, List<UniversitySocials> socials) {
+    public UniversityFullDto toUniversityFullDto(UniversityInfo universityInfo,
+                                                 UniversityGeographic geographic, List<UniversitySocials> socials,
+                                                 List<ExchangeProgram> programs) {
         return new UniversityFullDto(
                 universityInfo.getId(),
                 universityInfo.getName(),
                 universityInfo.getDescription(),
                 universityInfo.getAvatar(),
                 universityInfo.getRating(),
+                programs,
                 geographic,
                 socials
         );
@@ -39,6 +43,7 @@ public class UniversityMapper {
     public List<UniversityFullDto> toUniversityFullDtoList(
             List<UniversityInfo> universitiesInfo,
             List<UniversityGeographic> geographicList,
+            List<ExchangeProgram> programsList,
             List<UniversitySocials> socialsList) {
 
         // Группируем географические данные по ID университета
@@ -52,13 +57,19 @@ public class UniversityMapper {
                 .collect(Collectors.groupingBy(
                         social -> social.getUniversityInfo().getId()));
 
+        Map<Long, List<ExchangeProgram>> programsByUniId = programsList.stream()
+                .collect(Collectors.groupingBy(
+                        program -> program.getUniversityInfo().getId()));
+
         return universitiesInfo.stream()
                 .map(universityInfo -> {
                     UniversityGeographic geographic = geographicByUniId.get(universityInfo.getId());
                     List<UniversitySocials> socials = socialsByUniId.getOrDefault(
                             universityInfo.getId(), Collections.emptyList());
+                    List<ExchangeProgram> programs = programsByUniId.getOrDefault(
+                            universityInfo.getId(), Collections.emptyList());
 
-                    return toUniversityFullDto(universityInfo, geographic, socials);
+                    return toUniversityFullDto(universityInfo, geographic, socials, programs);
                 })
                 .collect(Collectors.toList());
     }
