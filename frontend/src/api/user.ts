@@ -1,15 +1,29 @@
-import { rtkApi } from './config';
-import { TStudent } from '../shared';
+import {rtkApi} from './config';
+import {TStudent} from '../shared';
 
-export const studentApi = rtkApi.injectEndpoints({
+export const userApi = rtkApi.injectEndpoints({
     endpoints: (builder) => ({
-            getStudents: builder.query<TStudent[], void>({
+        getStudents: builder.query<TStudent[], void>({
             query: () => '/users/students',
             providesTags: ['User'],
         }),
+        getStudent: builder.query<TStudent, void>({
+            query: (id) => `/users/students/${id}`,
+            providesTags: ['User'],
+        }),
+        postStudent: builder.mutation<void, Partial<TStudent>>({
+            query: (body) => ({
+                url: '/users/students',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['User'],
+        })
     }),
 });
 
 export const {
-    useGetStudentsQuery
-} = studentApi;
+    useGetStudentsQuery,
+    useGetStudentQuery,
+    usePostStudentMutation
+} = userApi;

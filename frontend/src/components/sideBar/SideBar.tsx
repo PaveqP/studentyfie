@@ -1,12 +1,12 @@
 import {Button, Flex} from "antd";
 import {MenuOutlined, HomeOutlined, LoginOutlined, LogoutOutlined, UserOutlined, SunFilled, MoonFilled} from "@ant-design/icons"
-import {FC} from "react"
+import {FC, useEffect} from "react"
 import s from "./SideBar.module.scss"
 import {useNavigate} from "react-router-dom"
 import {ERoutes} from "../../app"
 import {useTheme, useTypedSelector} from "../../shared"
 import cn from "classnames"
-import {useGetStudentsQuery} from "../../api";
+import { useGetStudentsQuery, usePostStudentMutation } from "../../api";
 
 interface ISideBarProps {
     collapsed: boolean;
@@ -17,8 +17,17 @@ const SideBar: FC<ISideBarProps> = ({collapsed, setCollapsed}) => {
     const navigate = useNavigate();
     const {toggleTheme} = useTheme();
     const isDark = useTypedSelector(state => state.util.isDark);
-    const {data: students, isLoading, isError} = useGetStudentsQuery();
-    console.log(isLoading, isError, students)
+    const [createStudent] = usePostStudentMutation();
+    // const test = () => {
+    //     createStudent({email: 'ivaso2004@mail.ru', firstName: 'Василий', lastName: 'Semenov', birthDate: '14.01.2004', learnInfo: {
+    //         university: 'ГУАП',
+    //         course: '3',
+    //         courseName: 'Бакалавриат',
+    //         program: 'Прикладная информатика',
+    //         rating: 4.5,
+    //         exchangeProgramsId: 1
+    //     }});
+    // }
 
     return (
         <Flex vertical align="center" justify="space-between" className={cn(s.container, {
@@ -46,7 +55,11 @@ const SideBar: FC<ISideBarProps> = ({collapsed, setCollapsed}) => {
                 </Button>
             </Flex>
             <Flex vertical align="center" gap={20} className={s.flex}>
-                <Button icon={<UserOutlined />} className={s.button}>
+                <Button
+                    onClick={() => navigate(ERoutes.Profile)}
+                    icon={<UserOutlined />}
+                    className={s.button}
+                >
                 {!collapsed && <>Профиль</>}
             </Button>
                 <Button icon={<LoginOutlined />} className={s.button}>
