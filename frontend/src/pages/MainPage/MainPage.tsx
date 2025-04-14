@@ -1,6 +1,6 @@
 import {PageWrapper, MainHeader} from "../../components"
 
-const MainPage = () => {
+const Main = () => {
     return (
         <PageWrapper header={<MainHeader />}>
             <div>...text</div>
@@ -8,4 +8,4 @@ const MainPage = () => {
     )
 }
 
-export {MainPage}
+export {Main}
