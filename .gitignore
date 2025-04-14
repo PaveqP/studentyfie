@@ -15,7 +15,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 **/target/
-user-service/target/
+user-service\target\
 university-service/target/
 
 ### IntelliJ IDEA ###
