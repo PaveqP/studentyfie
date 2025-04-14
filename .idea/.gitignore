@@ -1,27 +1,3 @@
 # Default ignored files
 /shelf/
 /workspace.xml
-*.class
-
-target/
-build/
-out/
-bin/
-
-*.log
-*.tmp
-*.swp
-*.bak
-
-.idea/
-*.iml
-*.ipr
-*.iws
-
-.gradle/
-.mvn/
-dependency-reduced-pom.xml
-
-*.orig
-*.rej
-.DS_Store

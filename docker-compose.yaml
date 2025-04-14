@@ -4,7 +4,7 @@ services:
     image: user-service
     container_name: user-service
     ports:
-      - "8080:8080"
+      - "8007:8007"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/user
       - SPRING_DATASOURCE_USERNAME=dbuser
@@ -14,14 +14,14 @@ services:
       - SPRING_JPA_SHOW_SQL=true
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
-      - postgres
+      - user-db
 
   university-service:
     build: ./university-service
     image: university-service
     container_name: university-service
     ports:
-      - "9090:9090"
+      - "8008:8008"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/university
       - SPRING_DATASOURCE_USERNAME=dbuser
@@ -31,19 +31,24 @@ services:
       - SPRING_JPA_SHOW_SQL=true
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
-      - postgres
+      - university-db
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
+  university-db:
+    image: postgres:16-alpine
+    container_name: university-db
+    environment:
+      - POSTGRES_DB=university
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=12345
+    ports:
+      - "6541:5432"
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
     environment:
       - POSTGRES_DB=user
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=12345
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
+      - "6540:5432"
