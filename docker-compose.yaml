@@ -1,10 +1,14 @@
+version: "3.8"
+
 services:
+  # Твои существующие сервисы
   user-service:
     build: ./user-service
     image: user-service
     container_name: user-service
-    ports:
-      - "8007:8007"
+    # Убираем проброс портов наружу (они будут доступны только внутри Docker-сети)
+    # ports:
+    #   - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/user
       - SPRING_DATASOURCE_USERNAME=dbuser
@@ -15,13 +19,16 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
       - user-db
+    networks:
+      - app-network  # Добавляем сервис в сеть
 
   university-service:
     build: ./university-service
     image: university-service
     container_name: university-service
-    ports:
-      - "8008:8008"
+    # Убираем проброс портов наружу
+    # ports:
+    #   - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/university
       - SPRING_DATASOURCE_USERNAME=dbuser
@@ -32,6 +39,8 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
     depends_on:
       - university-db
+    networks:
+      - app-network  # Добавляем сервис в сеть
 
   university-db:
     image: postgres:16-alpine
@@ -42,6 +51,8 @@ services:
       - POSTGRES_PASSWORD=12345
     ports:
       - "6541:5432"
+    networks:
+      - app-network
 
   user-db:
     image: postgres:16-alpine
@@ -52,3 +63,24 @@ services:
       - POSTGRES_PASSWORD=12345
     ports:
       - "6540:5432"
+    networks:
+      - app-network
+
+  # Новый сервис - Nginx
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"  # Пробрасываем 80 порт наружу
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Монтируем конфиг Nginx
+    depends_on:
+      - user-service
+      - university-service
+    networks:
+      - app-network
+
+# Создаем общую сеть для всех сервисов
+networks:
+  app-network:
+    driver: bridge
