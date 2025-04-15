@@ -1,5 +1,6 @@
 package com.ludoed.kafka;
 
+import com.ludoed.agent.dto.AgentFullDto;
 import com.ludoed.university.UniversityInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -9,11 +10,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UniversityKafkaProducer {
 
-    private final KafkaTemplate<String, UniversityInfo> kafkaTemplate;
+    private final KafkaTemplate<String, AgentFullDto> kafkaTemplate;
 
-    public void sendUniversityToKafka(UniversityInfo university) {
-        kafkaTemplate.send("university-to-user", university.getId().toString(), university);
-        System.out.println("✔️ Sent UniversityFullDto to university-to-user topic: " + university);
+    public void sendAgentToKafka(AgentFullDto agentFullDto) {
+        kafkaTemplate.send("university-to-user", agentFullDto.getAgentId().toString(), agentFullDto);
+        System.out.println("✔️ Sent UniversityFullDto to university-to-user topic: " + agentFullDto);
     }
 }
 
