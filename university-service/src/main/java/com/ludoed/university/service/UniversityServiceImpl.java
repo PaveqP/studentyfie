@@ -1,5 +1,6 @@
 package com.ludoed.university.service;
 
+import com.ludoed.university.dto.ExchangeProgramDto;
 import com.ludoed.university.model.Agent;
 import com.ludoed.university.model.AgentContact;
 import com.ludoed.agent.model.AgentFullDto;
@@ -81,7 +82,7 @@ public class UniversityServiceImpl implements UniversityService {
         }
 
         if (universityDto.getPrograms() != null && !universityDto.getPrograms().isEmpty()) {
-            List<ExchangeProgram> programs = universityDto.getPrograms().stream()
+            List<ExchangeProgramDto> programs = universityDto.getPrograms().stream()
                     .map(program -> {
                         ProgramCondition savedCondition = programConditionRepository.save(program.getProgramCondition());
 
@@ -94,11 +95,11 @@ public class UniversityServiceImpl implements UniversityService {
                             contactRepository.saveAll(contacts);
                         }
 
-                        ExchangeProgram newProgram = new ExchangeProgram();
+                        ExchangeProgramDto newProgram = universityMapper.toExchangeProgramDto(program, agentFullDto);
                         newProgram.setName(program.getName());
                         newProgram.setDescription(program.getDescription());
                         newProgram.setRating(program.getRating());
-                        newProgram.setAgent(agentMapper.toAgent(agentFullDto));
+                        newProgram.setAgent(a);
                         newProgram.setProgramCondition(savedCondition);
                         newProgram.setUniversityInfo(savedUniversity);
 

@@ -1,6 +1,5 @@
 package com.ludoed.university.dto;
 
-import com.ludoed.university.model.ExchangeProgram;
 import com.ludoed.university.model.UniversityGeographic;
 import com.ludoed.university.model.UniversitySocials;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,7 @@ public class UniversityFullDto {
 
     private Float rating;
 
-    private List<ExchangeProgram> programs;
+    private List<ExchangeProgramDto> programs;
 
     private UniversityGeographic geographic;
 

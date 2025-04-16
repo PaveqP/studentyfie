@@ -79,8 +79,9 @@ services:
     build: ./user-service
     image: user-service
     container_name: user-service
+    restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:6540/user
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/user
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=12345
       - SPRING_JPA_HIBERNATE_DDL_AUTO=none
@@ -98,12 +99,13 @@ services:
       app-network:
         aliases:
           - user-db
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbuser -d user && sleep 5"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    command: ["sh", "-c", "while ! pg_isready -h user-db -U dbuser -d user; do sleep 2; done && sleep 10 && java -jar /app.jar"]
+    command: >
+      sh -c "
+        while ! pg_isready -h user-db -U dbuser -d user; do sleep 2; done &&
+        while ! nc -z kafka 9092; do echo '⏳ Жду Kafka...'; sleep 2; done &&
+        echo '✅ Всё готово! Запускаю user-service' &&
+        java -jar /app.jar
+      "
 
   university-service:
     ports:
@@ -111,8 +113,9 @@ services:
     build: ./university-service
     image: university-service
     container_name: university-service
+    restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:6541/university
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-db:5432/university
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=12345
       - SPRING_JPA_HIBERNATE_DDL_AUTO=none
@@ -126,16 +129,25 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      user-service:
+        condition: service_started
     networks:
       app-network:
         aliases:
           - university-db
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbuser -d university && sleep 5"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    command: ["sh", "-c", "while ! pg_isready -h university-db -U dbuser -d university; do sleep 2; done && sleep 10 && java -jar /app.jar"]
+    command: >
+      sh -c "
+        while ! pg_isready -h university-db -U dbuser -d university; do sleep 2; done &&
+        while ! nc -z kafka 9092; do echo '⏳ Жду Kafka...'; sleep 2; done &&
+        echo '⏳ Жду user-service (http://user-service:8080/actuator/health)...' &&
+        until curl -s http://user-service:8080/actuator/health | grep '\"status\":\"UP\"' > /dev/null; do
+          sleep 2
+        done &&
+        echo '✅ Всё готово! Запускаю university-service' &&
+        java -jar /app.jar
+      "
+  
+  
 
   nginx:
     image: nginx:latest
@@ -147,9 +159,9 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       user-service:
-        condition: service_healthy
+        condition: service_started
       university-service:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
 

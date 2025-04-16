@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +25,7 @@ public class Agent {
     @Column(name = "agent_id")
     private Long id;
 
+    @Lob
     @Column(name = "avatar")
     private byte[] avatar;
 

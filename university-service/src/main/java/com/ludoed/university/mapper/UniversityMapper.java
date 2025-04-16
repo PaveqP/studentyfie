@@ -1,5 +1,7 @@
 package com.ludoed.university.mapper;
 
+import com.ludoed.agent.model.AgentFullDto;
+import com.ludoed.university.dto.ExchangeProgramDto;
 import com.ludoed.university.dto.UniversityFullDto;
 import com.ludoed.university.model.ExchangeProgram;
 import com.ludoed.university.model.UniversityGeographic;
@@ -23,6 +25,17 @@ public class UniversityMapper {
         universityInfo.setAvatar(universityDto.getAvatar());
         universityInfo.setRating(universityDto.getRating());
         return universityInfo;
+    }
+
+    public ExchangeProgramDto toExchangeProgramDto(ExchangeProgram program, AgentFullDto agentFullDto) {
+        ExchangeProgramDto programDto = new ExchangeProgramDto();
+        programDto.setName(program.getName());
+        programDto.setDescription(program.getDescription());
+        programDto.setRating(program.getRating());
+        programDto.setAgent(agentFullDto);
+        programDto.setProgramCondition(program.getProgramCondition());
+        programDto.setUniversityInfo(program.getUniversityInfo());
+        return programDto;
     }
 
     public UniversityFullDto toUniversityFullDto(UniversityInfo universityInfo,
