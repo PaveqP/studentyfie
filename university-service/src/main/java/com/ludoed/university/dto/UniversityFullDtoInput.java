@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class UniversityFullDto {
+public class UniversityFullDtoInput {
 
     private Long id;
 
@@ -24,7 +24,7 @@ public class UniversityFullDto {
 
     private Float rating;
 
-    private List<ExchangeProgram> programs;
+    private List<ExchangeProgramDtoInput> programs;
 
     private UniversityGeographic geographic;
 

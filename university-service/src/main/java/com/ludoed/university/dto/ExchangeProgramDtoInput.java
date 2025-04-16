@@ -1,7 +1,5 @@
 package com.ludoed.university.dto;
 
-import com.ludoed.agent.model.AgentFullDto;
-import com.ludoed.university.model.Agent;
 import com.ludoed.university.model.ProgramCondition;
 import com.ludoed.university.model.UniversityInfo;
 import lombok.AllArgsConstructor;
@@ -11,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class ExchangeProgramDto {
+public class ExchangeProgramDtoInput {
     private Long id;
 
     private String name;
@@ -20,7 +18,7 @@ public class ExchangeProgramDto {
 
     private Float rating;
 
-    private AgentFullDto agent;
+    private String agentEmail;
 
     private ProgramCondition programCondition;
 

@@ -1,9 +1,12 @@
 package com.ludoed.university.mapper;
 
 import com.ludoed.agent.model.AgentFullDto;
-import com.ludoed.university.dto.ExchangeProgramDto;
+import com.ludoed.university.dto.ExchangeProgramDtoInput;
+import com.ludoed.university.dto.ExchangeProgramDtoOutput;
 import com.ludoed.university.dto.UniversityFullDto;
+import com.ludoed.university.model.Agent;
 import com.ludoed.university.model.ExchangeProgram;
+import com.ludoed.university.model.ProgramCondition;
 import com.ludoed.university.model.UniversityGeographic;
 import com.ludoed.university.model.UniversityInfo;
 import com.ludoed.university.model.UniversitySocials;
@@ -27,15 +30,49 @@ public class UniversityMapper {
         return universityInfo;
     }
 
-    public ExchangeProgramDto toExchangeProgramDto(ExchangeProgram program, AgentFullDto agentFullDto) {
-        ExchangeProgramDto programDto = new ExchangeProgramDto();
+    public ExchangeProgramDtoOutput toExchangeProgramDtoOutput(ExchangeProgramDtoInput program, AgentFullDto agentFullDto, ProgramCondition condition) {
+        ExchangeProgramDtoOutput programDto = new ExchangeProgramDtoOutput();
         programDto.setName(program.getName());
         programDto.setDescription(program.getDescription());
         programDto.setRating(program.getRating());
         programDto.setAgent(agentFullDto);
-        programDto.setProgramCondition(program.getProgramCondition());
-        programDto.setUniversityInfo(program.getUniversityInfo());
+        programDto.setProgramCondition(condition);
         return programDto;
+    }
+
+    public Agent toAgent(AgentFullDto agentFullDto) {
+        return new Agent(
+                agentFullDto.getAgentId(),
+                agentFullDto.getAvatar(),
+                agentFullDto.getEmail(),
+                agentFullDto.getFirstName(),
+                agentFullDto.getSurname(),
+                agentFullDto.getLastName(),
+                agentFullDto.getUniversity()
+        );
+    }
+
+
+    public ExchangeProgram toExchangeProgram(ExchangeProgramDtoOutput programDto, UniversityInfo universityInfo) {
+        ExchangeProgram program = new ExchangeProgram();
+        program.setName(programDto.getName());
+        program.setDescription(programDto.getDescription());
+        program.setRating(programDto.getRating());
+        program.setAgent(toAgent(programDto.getAgent()));
+        program.setProgramCondition(programDto.getProgramCondition());
+        program.setUniversityInfo(universityInfo);
+        return program;
+    }
+
+    public ExchangeProgramDtoInput toExchangeProgramDtoInput(ExchangeProgramDtoInput programDto, UniversityInfo universityInfo, Agent agent) {
+        ExchangeProgram program = new ExchangeProgram();
+        program.setName(programDto.getName());
+        program.setDescription(programDto.getDescription());
+        program.setRating(programDto.getRating());
+        program.setAgent(toAgent(programDto.getAgent()));
+        program.setProgramCondition(programDto.getProgramCondition());
+        program.setUniversityInfo(universityInfo);
+        return program;
     }
 
     public UniversityFullDto toUniversityFullDto(UniversityInfo universityInfo,

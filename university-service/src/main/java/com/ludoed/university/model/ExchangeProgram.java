@@ -35,8 +35,9 @@ public class ExchangeProgram {
     @Column(name = "rating")
     private Float rating;
 
-    @Column(name = "agent_email")
-    private String agentEmail;
+    @OneToOne
+    @JoinColumn(name = "agent_id")
+    private Agent agent;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "program_conditions_id")

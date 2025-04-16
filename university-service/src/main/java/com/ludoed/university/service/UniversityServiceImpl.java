@@ -1,6 +1,10 @@
 package com.ludoed.university.service;
 
 import com.ludoed.university.dto.ExchangeProgramDto;
+import com.ludoed.university.dto.ExchangeProgramDtoInput;
+import com.ludoed.university.dto.ExchangeProgramDtoOutput;
+import com.ludoed.university.dto.UniversityFullDtoInput;
+import com.ludoed.university.dto.UniversityFullDtoOutput;
 import com.ludoed.university.model.Agent;
 import com.ludoed.university.model.AgentContact;
 import com.ludoed.agent.model.AgentFullDto;
@@ -15,7 +19,6 @@ import com.ludoed.university.dao.ProgramConditionRepository;
 import com.ludoed.university.dao.UniversityGeographicRepository;
 import com.ludoed.university.dao.UniversityInfoRepository;
 import com.ludoed.university.dao.UniversitySocialsRepository;
-import com.ludoed.university.dto.UniversityFullDto;
 import com.ludoed.university.mapper.UniversityMapper;
 import com.ludoed.university.model.ExchangeProgram;
 import com.ludoed.university.model.ProgramCondition;
@@ -23,7 +26,6 @@ import com.ludoed.university.model.UniversityGeographic;
 import com.ludoed.university.model.UniversityInfo;
 import com.ludoed.university.model.UniversitySocials;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -62,7 +64,7 @@ public class UniversityServiceImpl implements UniversityService {
     private final KafkaAgentClient kafkaAgentClient;
 
     @Override
-    public UniversityFullDto createUniversity(UniversityFullDto universityDto) {
+    public UniversityFullDtoOutput createUniversity(UniversityFullDtoInput universityDto) {
         if (universityInfoRepository.findByName(universityDto.getName()).isPresent()) {
             throw new DuplicatedDataException("Этот университет уже существует");
         }
@@ -82,11 +84,11 @@ public class UniversityServiceImpl implements UniversityService {
         }
 
         if (universityDto.getPrograms() != null && !universityDto.getPrograms().isEmpty()) {
-            List<ExchangeProgramDto> programs = universityDto.getPrograms().stream()
+            List<ExchangeProgramDtoInput> programs = universityDto.getPrograms().stream()
                     .map(program -> {
                         ProgramCondition savedCondition = programConditionRepository.save(program.getProgramCondition());
 
-                        AgentFullDto agentFullDto = kafkaAgentClient.requestAgentByEmail(program.getAgent().getEmail());
+                        AgentFullDto agentFullDto = kafkaAgentClient.requestAgentByEmail(program.getAgentEmail());
                         Agent savedAgent = agentRepository.save(agentMapper.toAgent(agentFullDto));
                         if (agentFullDto.getContacts() != null && !agentFullDto.getContacts().isEmpty()) {
                             List<AgentContact> contacts = agentFullDto.getContacts().stream()
@@ -95,15 +97,10 @@ public class UniversityServiceImpl implements UniversityService {
                             contactRepository.saveAll(contacts);
                         }
 
-                        ExchangeProgramDto newProgram = universityMapper.toExchangeProgramDto(program, agentFullDto);
-                        newProgram.setName(program.getName());
-                        newProgram.setDescription(program.getDescription());
-                        newProgram.setRating(program.getRating());
-                        newProgram.setAgent(a);
-                        newProgram.setProgramCondition(savedCondition);
-                        newProgram.setUniversityInfo(savedUniversity);
+                        ExchangeProgramDtoOutput newProgram = universityMapper.toExchangeProgramDtoOutput(program, agentFullDto, savedCondition);
 
-                        return exchangeProgramRepository.save(newProgram);
+                        exchangeProgramRepository.save(universityMapper.toExchangeProgram(newProgram, savedUniversity));
+                        return universityMapper.
                     })
                     .toList();
         }
@@ -117,7 +114,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     @Override
     @Transactional
-    public UniversityFullDto updateUniversity(Long universityId, UniversityFullDto universityDto) {
+    public UniversityFullDtoOutput updateUniversity(Long universityId, UniversityFullDtoInput universityDto) {
         UniversityInfo university = universityInfoRepository.findById(universityId)
                 .orElseThrow(() -> new NotFoundException("Университета с id = " + universityId + " не существует."));
 
@@ -181,7 +178,7 @@ public class UniversityServiceImpl implements UniversityService {
     }
 
     @Override
-    public UniversityFullDto getUniversityById(Long universityId) {
+    public UniversityFullDtoOutput getUniversityById(Long universityId) {
         UniversityInfo university = universityInfoRepository.findById(universityId)
                 .orElseThrow(() -> new NotFoundException("Университета с id = " + universityId + " не существует."));
 
@@ -193,7 +190,7 @@ public class UniversityServiceImpl implements UniversityService {
     }
 
     @Override
-    public List<UniversityFullDto> getAllUniversities(int from, int size) {
+    public List<UniversityFullDtoOutput> getAllUniversities(int from, int size) {
         PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<UniversityInfo> universityList = universityInfoRepository.findAll(pageRequest).toList();
 

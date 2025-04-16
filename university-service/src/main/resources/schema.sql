@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS exchange_programs (
     name VARCHAR(255),
     description VARCHAR(7000),
     rating FLOAT,
-    agent_email VARCHAR(200),
+    agent_id BIGINT REFERENCES agent(agent_id) ON DELETE CASCADE,
     program_conditions_id BIGINT REFERENCES program_conditions(program_conditions_id) ON DELETE CASCADE,
     uni_info_id BIGINT REFERENCES uni_info(uni_info_id) ON DELETE CASCADE
 );
