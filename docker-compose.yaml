@@ -2,6 +2,8 @@ version: "3.8"
 
 services:
   university-db:
+    ports:
+      - "6541:5432"
     image: postgres:16-alpine
     container_name: university-db
     environment:
@@ -17,12 +19,17 @@ services:
       - app-network
 
   user-db:
+    ports:
+      - "6540:5432"
     image: postgres:16-alpine
     container_name: user-db
     environment:
       - POSTGRES_DB=user
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=12345
+    depends_on:
+      university-db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d user"]
       interval: 2s
@@ -57,23 +64,27 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CREATE_TOPICS: "user-to-university:3:1,university-to-user:3:1"
+      KAFKA_CREATE_TOPICS: >
+        agent-request:1:1,
+        agent-response:1:1,
+        university-request:1:1,
+        university-response:1:1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     networks:
       - app-network
 
   user-service:
+    ports:
+      - "8080:8080"
     build: ./user-service
     image: user-service
     container_name: user-service
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/user
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:6540/user
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=12345
-      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=60000
       - SPRING_JPA_HIBERNATE_DDL_AUTO=none
-      - SPRING_SQL_INIT_MODE=never
+      - SPRING_SQL_INIT_MODE=always
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER=org.springframework.kafka.support.serializer.JsonSerializer
       - SPRING_KAFKA_CONSUMER_GROUP_ID=user-service-group
@@ -84,26 +95,28 @@ services:
       kafka:
         condition: service_started
     networks:
-      - app-network
-    restart: on-failure
+      app-network:
+        aliases:
+          - user-db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d user && sleep 5"]
       interval: 10s
       timeout: 5s
       retries: 10
-    command: ["sh", "-c", "sleep 25 && java -jar /app.jar"]
+    command: ["sh", "-c", "while ! pg_isready -h user-db -U dbuser -d user; do sleep 2; done && sleep 10 && java -jar /app.jar"]
 
   university-service:
+    ports:
+      - "8081:8080"
     build: ./university-service
     image: university-service
     container_name: university-service
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://university-db:5432/university
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:6541/university
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=12345
-      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=60000
       - SPRING_JPA_HIBERNATE_DDL_AUTO=none
-      - SPRING_SQL_INIT_MODE=never
+      - SPRING_SQL_INIT_MODE=always
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER=org.springframework.kafka.support.serializer.JsonSerializer
       - SPRING_KAFKA_CONSUMER_GROUP_ID=university-service-group
@@ -114,14 +127,15 @@ services:
       kafka:
         condition: service_started
     networks:
-      - app-network
-    restart: on-failure
+      app-network:
+        aliases:
+          - university-db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d university && sleep 5"]
       interval: 10s
       timeout: 5s
       retries: 10
-    command: ["sh", "-c", "sleep 25 && java -jar /app.jar"]
+    command: ["sh", "-c", "while ! pg_isready -h university-db -U dbuser -d university; do sleep 2; done && sleep 10 && java -jar /app.jar"]
 
   nginx:
     image: nginx:latest

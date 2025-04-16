@@ -1,7 +1,14 @@
 package com.ludoed.university.service;
 
+import com.ludoed.university.model.Agent;
+import com.ludoed.university.model.AgentContact;
+import com.ludoed.agent.model.AgentFullDto;
+import com.ludoed.university.dao.AgentContactRepository;
+import com.ludoed.university.dao.AgentRepository;
+import com.ludoed.agent.mapper.AgentMapper;
 import com.ludoed.exception.DuplicatedDataException;
 import com.ludoed.exception.NotFoundException;
+import com.ludoed.kafka.KafkaAgentClient;
 import com.ludoed.university.dao.ExchangeProgramRepository;
 import com.ludoed.university.dao.ProgramConditionRepository;
 import com.ludoed.university.dao.UniversityGeographicRepository;
@@ -15,8 +22,10 @@ import com.ludoed.university.model.UniversityGeographic;
 import com.ludoed.university.model.UniversityInfo;
 import com.ludoed.university.model.UniversitySocials;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +48,17 @@ public class UniversityServiceImpl implements UniversityService {
 
     private final ProgramConditionRepository programConditionRepository;
 
+    private final AgentRepository agentRepository;
+
+    private final AgentContactRepository contactRepository;
+
     private final UniversityMapper universityMapper;
+
+    private final AgentMapper agentMapper;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private final KafkaAgentClient kafkaAgentClient;
 
     @Override
     public UniversityFullDto createUniversity(UniversityFullDto universityDto) {
@@ -66,11 +85,20 @@ public class UniversityServiceImpl implements UniversityService {
                     .map(program -> {
                         ProgramCondition savedCondition = programConditionRepository.save(program.getProgramCondition());
 
+                        AgentFullDto agentFullDto = kafkaAgentClient.requestAgentByEmail(program.getAgent().getEmail());
+                        Agent savedAgent = agentRepository.save(agentMapper.toAgent(agentFullDto));
+                        if (agentFullDto.getContacts() != null && !agentFullDto.getContacts().isEmpty()) {
+                            List<AgentContact> contacts = agentFullDto.getContacts().stream()
+                                    .peek(s -> s.setAgent(savedAgent))
+                                    .toList();
+                            contactRepository.saveAll(contacts);
+                        }
+
                         ExchangeProgram newProgram = new ExchangeProgram();
                         newProgram.setName(program.getName());
                         newProgram.setDescription(program.getDescription());
                         newProgram.setRating(program.getRating());
-                        newProgram.setAgent_id(program.getAgent_id());
+                        newProgram.setAgent(agentMapper.toAgent(agentFullDto));
                         newProgram.setProgramCondition(savedCondition);
                         newProgram.setUniversityInfo(savedUniversity);
 
@@ -134,7 +162,7 @@ public class UniversityServiceImpl implements UniversityService {
                         program.setName(programDto.getName());
                         program.setDescription(programDto.getDescription());
                         program.setRating(programDto.getRating());
-                        program.setAgent_id(programDto.getAgent_id());
+                        program.setAgent(programDto.getAgent());
                         program.setProgramCondition(savedCondition);
                         program.setUniversityInfo(university);
 

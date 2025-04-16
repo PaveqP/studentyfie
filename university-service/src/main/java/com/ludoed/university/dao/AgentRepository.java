@@ -1,6 +1,6 @@
-package com.ludoed.agent.dao;
+package com.ludoed.university.dao;
 
-import com.ludoed.agent.model.Agent;
+import com.ludoed.university.model.Agent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

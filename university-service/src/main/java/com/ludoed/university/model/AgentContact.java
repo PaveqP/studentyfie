@@ -1,6 +1,5 @@
 package com.ludoed.university.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,42 +7,29 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-@Data
 @Entity
-@RequiredArgsConstructor
+@Data
 @AllArgsConstructor
-@Table(name = "exchange_programs")
-public class ExchangeProgram {
+@RequiredArgsConstructor
+@Table(name = "agentContacts")
+public class AgentContact {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "exchange_programs_id")
-    private Long id;
+    private Long agentContactsId;
 
     @Column(name = "name")
     private String name;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "link")
+    private String link;
 
-    @Column(name = "rating")
-    private Float rating;
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "agent_id")
     private Agent agent;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "program_conditions_id")
-    private ProgramCondition programCondition;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "uni_info_id")
-    private UniversityInfo universityInfo;
 }

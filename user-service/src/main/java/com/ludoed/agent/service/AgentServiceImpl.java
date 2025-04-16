@@ -9,8 +9,10 @@ import com.ludoed.agent.mapper.AgentMapper;
 import com.ludoed.agent.model.Agent;
 import com.ludoed.agent.model.AgentContact;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,8 @@ public class AgentServiceImpl implements AgentService {
     private final AgentContactRepository agentContactRepository;
 
     private final AgentMapper agentMapper;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public AgentFullDto getAgentById(Long agentId) {

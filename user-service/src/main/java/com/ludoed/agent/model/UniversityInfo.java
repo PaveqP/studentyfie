@@ -1,4 +1,4 @@
-package com.ludoed.university;
+package com.ludoed.agent.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

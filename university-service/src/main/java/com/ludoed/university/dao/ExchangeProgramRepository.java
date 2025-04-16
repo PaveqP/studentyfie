@@ -13,4 +13,6 @@ public interface ExchangeProgramRepository extends JpaRepository<ExchangeProgram
     List<ExchangeProgram> findByUniversityInfoIdIn(List<Long> universityIds);
 
     void deleteByUniversityInfoId(Long universityId);
+
+    List<ExchangeProgram> findByAgentId(Long agentId);
 }

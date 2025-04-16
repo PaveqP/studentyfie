@@ -2,6 +2,7 @@ package com.ludoed.student.controller;
 
 import com.ludoed.student.dto.StudentFullDto;
 import com.ludoed.student.service.StudentService;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,11 @@ public class StudentController {
     public List<StudentFullDto> getAllStudents(@RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                @RequestParam(defaultValue = "10") @Positive int size) {
         return studentService.getAllStudents(from, size);
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println(">>> StudentController инициализирован");
     }
 
     @PostMapping
