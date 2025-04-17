@@ -1,6 +1,8 @@
 package com.ludoed.university.controller;
 
 import com.ludoed.university.dto.UniversityFullDto;
+import com.ludoed.university.dto.UniversityFullDtoInput;
+import com.ludoed.university.dto.UniversityFullDtoOutput;
 import com.ludoed.university.service.UniversityService;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -27,23 +29,23 @@ public class UniversityController {
     private final UniversityService universityService;
 
     @GetMapping("/{universityId}")
-    public UniversityFullDto getUniversityById(@PathVariable Long universityId) {
+    public UniversityFullDtoOutput getUniversityById(@PathVariable Long universityId) {
         return universityService.getUniversityById(universityId);
     }
 
     @GetMapping
-    public List<UniversityFullDto> getAllUniversities(@RequestParam(defaultValue = "0") @PositiveOrZero int from,
+    public List<UniversityFullDtoOutput> getAllUniversities(@RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                       @RequestParam(defaultValue = "10") @Positive int size) {
         return universityService.getAllUniversities(from, size);
     }
 
     @PostMapping
-    public UniversityFullDto createUniversity(@RequestBody UniversityFullDto university) {
+    public UniversityFullDtoOutput createUniversity(@RequestBody UniversityFullDtoInput university) {
         return universityService.createUniversity(university);
     }
 
     @PatchMapping("/{universityId}")
-    public UniversityFullDto updateUniversity(@PathVariable Long universityId, @RequestBody UniversityFullDto university) {
+    public UniversityFullDtoOutput updateUniversity(@PathVariable Long universityId, @RequestBody UniversityFullDtoInput university) {
         return universityService.updateUniversity(universityId, university);
     }
 

@@ -15,7 +15,7 @@ public class KafkaListeners {
 
     private final KafkaAgentClient kafkaAgentClient;
 
-    @KafkaListener(topics = "agent-response", groupId = "university-service")
+    @KafkaListener(topics = "agent-response", groupId = "university-service", containerFactory = "agentKafkaListenerFactory")
     public void listen(ConsumerRecord<String, AgentFullDto> record) {
         String requestId = record.key();
         AgentFullDto agent = record.value();

@@ -31,7 +31,6 @@ public class UniversitySocials {
     @Column(name = "link")
     private String link;
 
-    @NotNull
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "uni_info_id")
     private UniversityInfo universityInfo;

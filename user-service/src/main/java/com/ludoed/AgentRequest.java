@@ -1,4 +1,4 @@
-package com.ludoed.kafka;
+package com.ludoed;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

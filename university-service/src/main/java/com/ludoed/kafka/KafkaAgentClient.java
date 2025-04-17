@@ -1,7 +1,7 @@
 package com.ludoed.kafka;
 
 import com.ludoed.agent.model.AgentFullDto;
-import com.ludoed.university.model.AgentRequest;
+import com.ludoed.AgentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;

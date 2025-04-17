@@ -25,7 +25,6 @@ public class UniversityGeographic {
     @Column(name = "uni_geographic_id")
     private Long id;
 
-    @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "uni_info_id")
     private UniversityInfo universityInfo;

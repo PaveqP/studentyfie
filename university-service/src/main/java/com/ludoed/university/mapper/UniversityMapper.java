@@ -4,6 +4,8 @@ import com.ludoed.agent.model.AgentFullDto;
 import com.ludoed.university.dto.ExchangeProgramDtoInput;
 import com.ludoed.university.dto.ExchangeProgramDtoOutput;
 import com.ludoed.university.dto.UniversityFullDto;
+import com.ludoed.university.dto.UniversityFullDtoInput;
+import com.ludoed.university.dto.UniversityFullDtoOutput;
 import com.ludoed.university.model.Agent;
 import com.ludoed.university.model.ExchangeProgram;
 import com.ludoed.university.model.ProgramCondition;
@@ -21,7 +23,7 @@ import java.util.stream.Collectors;
 @Component
 public class UniversityMapper {
 
-    public UniversityInfo toUniversityInfo(UniversityFullDto universityDto) {
+    public UniversityInfo toUniversityInfo(UniversityFullDtoInput universityDto) {
         UniversityInfo universityInfo = new UniversityInfo();
         universityInfo.setName(universityDto.getName());
         universityInfo.setDescription(universityDto.getDescription());
@@ -64,15 +66,19 @@ public class UniversityMapper {
         return program;
     }
 
-    public ExchangeProgramDtoInput toExchangeProgramDtoInput(ExchangeProgramDtoInput programDto, UniversityInfo universityInfo, Agent agent) {
-        ExchangeProgram program = new ExchangeProgram();
-        program.setName(programDto.getName());
-        program.setDescription(programDto.getDescription());
-        program.setRating(programDto.getRating());
-        program.setAgent(toAgent(programDto.getAgent()));
-        program.setProgramCondition(programDto.getProgramCondition());
-        program.setUniversityInfo(universityInfo);
-        return program;
+    public UniversityFullDtoOutput toUniversityFullDtoOutput(UniversityInfo universityInfo,
+                                                             UniversityGeographic geographic, List<UniversitySocials> socials,
+                                                             List<ExchangeProgramDtoOutput> programs) {
+        return new UniversityFullDtoOutput(
+                universityInfo.getId(),
+                universityInfo.getName(),
+                universityInfo.getDescription(),
+                universityInfo.getAvatar(),
+                universityInfo.getRating(),
+                programs,
+                geographic,
+                socials
+        );
     }
 
     public UniversityFullDto toUniversityFullDto(UniversityInfo universityInfo,

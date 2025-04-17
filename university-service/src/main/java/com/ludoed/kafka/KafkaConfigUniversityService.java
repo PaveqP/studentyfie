@@ -1,5 +1,6 @@
 package com.ludoed.kafka;
 
+import com.ludoed.AgentRequest;
 import com.ludoed.agent.model.AgentFullDto;
 import com.ludoed.university.dto.UniversityFullDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -15,6 +16,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -48,6 +50,16 @@ public class KafkaConfigUniversityService {
         return new DefaultKafkaProducerFactory<>(config);
     }
 
+    @Bean(name = "agentKafkaTemplate")
+    public KafkaTemplate<String, AgentFullDto> kafkaTemplate() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config));
+    }
+
+
     @Bean
     public KafkaTemplate<String, String> stringKafkaTemplate() {
         return new KafkaTemplate<>(stringProducerFactory());
@@ -55,17 +67,24 @@ public class KafkaConfigUniversityService {
 
     @Bean
     public ConsumerFactory<String, AgentFullDto> agentConsumerFactory() {
-        JsonDeserializer<AgentFullDto> deserializer = new JsonDeserializer<>(AgentFullDto.class);
+        JsonDeserializer<AgentFullDto> deserializer = new JsonDeserializer<>(AgentFullDto.class, false);
+        deserializer.setRemoveTypeHeaders(false);
         deserializer.addTrustedPackages("*");
+        deserializer.setUseTypeMapperForKey(true); // важно при key-value сериализации
 
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "university-service-group");
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class.getName());
+        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, AgentRequest.class.getName());
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
     }
+
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, AgentFullDto> agentKafkaListenerFactory() {

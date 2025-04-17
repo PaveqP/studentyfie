@@ -1,6 +1,6 @@
 package com.ludoed.kafka;
 
-import com.ludoed.university.model.AgentRequest;
+import com.ludoed.AgentRequest;
 import com.ludoed.university.model.UniversityInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;

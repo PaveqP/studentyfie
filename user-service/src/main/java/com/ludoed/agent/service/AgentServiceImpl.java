@@ -40,6 +40,14 @@ public class AgentServiceImpl implements AgentService {
         return agentMapper.toAgentFullDto(agent, contacts);
     }
 
+    @Transactional
+    public AgentFullDto getAgentByEmail(String email) {
+        Agent agent = agentRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Агента с email = {} не существует." + email));
+        List<AgentContact> contacts = agentContactRepository.findByAgentId(agent.getId());
+        return agentMapper.toAgentFullDto(agent, contacts);
+    }
+
     @Override
     public List<AgentFullDto> getAllAgents(int from, int size) {
         PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));

@@ -1,6 +1,5 @@
 package com.ludoed.university.service;
 
-import com.ludoed.university.dto.ExchangeProgramDto;
 import com.ludoed.university.dto.ExchangeProgramDtoInput;
 import com.ludoed.university.dto.ExchangeProgramDtoOutput;
 import com.ludoed.university.dto.UniversityFullDtoInput;
@@ -33,8 +32,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,52 +66,95 @@ public class UniversityServiceImpl implements UniversityService {
     private final KafkaAgentClient kafkaAgentClient;
 
     @Override
+    @Transactional
     public UniversityFullDtoOutput createUniversity(UniversityFullDtoInput universityDto) {
+        // Проверка на дубликат университета
         if (universityInfoRepository.findByName(universityDto.getName()).isPresent()) {
             throw new DuplicatedDataException("Этот университет уже существует");
         }
 
-        UniversityInfo savedUniversity = universityInfoRepository.save(universityMapper.toUniversityInfo(universityDto));
+        // 1. Сохраняем основную информацию об университете
+        UniversityInfo universityInfo = universityMapper.toUniversityInfo(universityDto);
+        UniversityInfo savedUniversity = universityInfoRepository.save(universityInfo);
 
-        if (universityDto.getSocials() != null && !universityDto.getSocials().isEmpty()) {
-            List<UniversitySocials> socials = universityDto.getSocials().stream()
-                    .peek(u -> u.setUniversityInfo(savedUniversity))
-                    .toList();
-            universitySocialsRepository.saveAll(socials);
-        }
-
+        // 2. Сохраняем географические данные
+        UniversityGeographic savedGeographic = null;
         if (universityDto.getGeographic() != null) {
-            universityDto.getGeographic().setUniversityInfo(savedUniversity);
-            universityGeographicRepository.save(universityDto.getGeographic());
+            UniversityGeographic geographic = universityDto.getGeographic();
+            geographic.setUniversityInfo(savedUniversity);
+            savedGeographic = universityGeographicRepository.save(geographic);
         }
 
+        // 3. Сохраняем социальные сети
+        List<UniversitySocials> savedSocials = new ArrayList<>();
+        if (universityDto.getSocials() != null && !universityDto.getSocials().isEmpty()) {
+            universityDto.getSocials().forEach(social -> social.setUniversityInfo(savedUniversity));
+            savedSocials = universitySocialsRepository.saveAll(universityDto.getSocials());
+        }
+
+        // 4. Обрабатываем программы обмена
+        List<ExchangeProgram> savedPrograms = new ArrayList<>();
         if (universityDto.getPrograms() != null && !universityDto.getPrograms().isEmpty()) {
-            List<ExchangeProgramDtoInput> programs = universityDto.getPrograms().stream()
-                    .map(program -> {
-                        ProgramCondition savedCondition = programConditionRepository.save(program.getProgramCondition());
+            for (ExchangeProgramDtoInput programDto : universityDto.getPrograms()) {
+                // Сохраняем условия программы
+                ProgramCondition condition = programConditionRepository.save(programDto.getProgramCondition());
 
-                        AgentFullDto agentFullDto = kafkaAgentClient.requestAgentByEmail(program.getAgentEmail());
-                        Agent savedAgent = agentRepository.save(agentMapper.toAgent(agentFullDto));
-                        if (agentFullDto.getContacts() != null && !agentFullDto.getContacts().isEmpty()) {
-                            List<AgentContact> contacts = agentFullDto.getContacts().stream()
-                                    .peek(s -> s.setAgent(savedAgent))
-                                    .toList();
-                            contactRepository.saveAll(contacts);
-                        }
+                // Работа с агентом
+                AgentFullDto agentDto = kafkaAgentClient.requestAgentByEmail(programDto.getAgentEmail());
+                Agent agent = agentRepository.save(agentMapper.toAgent(agentDto));
 
-                        ExchangeProgramDtoOutput newProgram = universityMapper.toExchangeProgramDtoOutput(program, agentFullDto, savedCondition);
+                // Сохраняем контакты агента
+                if (agentDto.getContacts() != null && !agentDto.getContacts().isEmpty()) {
+                    List<AgentContact> contacts = agentDto.getContacts().stream()
+                            .peek(contactDto -> contactDto.setAgent(agent))
+                            .toList();
+                    contactRepository.saveAll(contacts);
+                }
 
-                        exchangeProgramRepository.save(universityMapper.toExchangeProgram(newProgram, savedUniversity));
-                        return universityMapper.
-                    })
-                    .toList();
+                // Создаем и сохраняем программу обмена
+                ExchangeProgram program = new ExchangeProgram();
+                program.setName(programDto.getName());
+                program.setDescription(programDto.getDescription());
+                program.setRating(programDto.getRating());
+                program.setAgent(agent);
+                program.setProgramCondition(condition);
+                program.setUniversityInfo(savedUniversity);
+
+                savedPrograms.add(exchangeProgramRepository.save(program));
+            }
         }
 
-        UniversityGeographic geographic = universityDto.getGeographic();
-        List<UniversitySocials> socials = universityDto.getSocials();
-        List<ExchangeProgram> programs = exchangeProgramRepository.findByUniversityInfoId(savedUniversity.getId());
+        // 5. Формируем результат
+        return universityMapper.toUniversityFullDtoOutput(
+                savedUniversity,
+                savedGeographic,
+                savedSocials,
+                savedPrograms.stream()
+                        .map(program -> {
+                            // Создаем DTO для программы
+                            ExchangeProgramDtoOutput programDto = new ExchangeProgramDtoOutput();
+                            programDto.setId(program.getId());
+                            programDto.setName(program.getName());
+                            programDto.setDescription(program.getDescription());
+                            programDto.setRating(program.getRating());
+                            programDto.setProgramCondition(program.getProgramCondition());
 
-        return universityMapper.toUniversityFullDto(savedUniversity, geographic, socials, programs);
+                            // Маппинг агента
+                            Agent agent = program.getAgent();
+                            AgentFullDto agentDto = new AgentFullDto();
+                            agentDto.setAgentId(agent.getId());
+                            agentDto.setEmail(agent.getEmail());
+                            agentDto.setFirstName(agent.getFirstName());
+                            agentDto.setSurname(agent.getSurname());
+                            agentDto.setLastName(agent.getLastName());
+                            agentDto.setAvatar(agent.getAvatar());
+                            agentDto.setUniversity(agent.getUniversity());
+                            programDto.setAgent(agentDto);
+
+                            return programDto;
+                        })
+                        .toList()
+        );
     }
 
     @Override
@@ -118,63 +163,128 @@ public class UniversityServiceImpl implements UniversityService {
         UniversityInfo university = universityInfoRepository.findById(universityId)
                 .orElseThrow(() -> new NotFoundException("Университета с id = " + universityId + " не существует."));
 
+        // Обновляем основные данные университета
         Optional.ofNullable(universityDto.getName()).ifPresent(university::setName);
         Optional.ofNullable(universityDto.getDescription()).ifPresent(university::setDescription);
         Optional.ofNullable(universityDto.getAvatar()).ifPresent(university::setAvatar);
         Optional.ofNullable(universityDto.getRating()).ifPresent(university::setRating);
-
         UniversityInfo updatedUniversity = universityInfoRepository.save(university);
 
-        List<UniversitySocials> updatedSocials = new ArrayList<>();
-        if (universityDto.getSocials() != null) {
-            universitySocialsRepository.deleteByUniversityInfoId(universityId);
-            updatedSocials = universityDto.getSocials().stream()
-                    .peek(u -> u.setUniversityInfo(university))
-                    .toList();
-            universitySocialsRepository.saveAll(updatedSocials);
-        }
+        // Обновляем социальные сети
+        List<UniversitySocials> updatedSocials = updateUniversitySocials(universityId, university, universityDto.getSocials());
 
-        UniversityGeographic updatedGeographic = null;
-        if (universityDto.getGeographic() != null) {
-            universityGeographicRepository.deleteByUniversityInfoId(universityId);
-            universityDto.getGeographic().setUniversityInfo(university);
-            updatedGeographic = universityGeographicRepository.save(universityDto.getGeographic());
-        }
+        // Обновляем географические данные
+        UniversityGeographic updatedGeographic = updateUniversityGeographic(universityId, university, universityDto.getGeographic());
 
-        List<ExchangeProgram> updatedPrograms = new ArrayList<>();
-        if (universityDto.getPrograms() != null) {
-            // Удаляем старые программы и их условия
-            List<ExchangeProgram> existingPrograms = exchangeProgramRepository.findByUniversityInfoId(universityId);
-            existingPrograms.forEach(program -> {
-                if (program.getProgramCondition() != null) {
-                    programConditionRepository.deleteById(program.getProgramCondition().getId());
-                }
-            });
-            exchangeProgramRepository.deleteByUniversityInfoId(universityId);
+        // Обновляем программы обмена
+        List<ExchangeProgram> updatedPrograms = updateExchangePrograms(universityId, university, universityDto.getPrograms());
 
-            updatedPrograms = universityDto.getPrograms().stream()
-                    .map(programDto -> {
-                        ProgramCondition savedCondition = programConditionRepository.save(programDto.getProgramCondition());
-
-                        ExchangeProgram program = new ExchangeProgram();
-                        program.setName(programDto.getName());
-                        program.setDescription(programDto.getDescription());
-                        program.setRating(programDto.getRating());
-                        program.setAgent(programDto.getAgent());
-                        program.setProgramCondition(savedCondition);
-                        program.setUniversityInfo(university);
-
-                        return exchangeProgramRepository.save(program);
-                    })
-                    .toList();
-        }
-
-        return universityMapper.toUniversityFullDto(
+        return universityMapper.toUniversityFullDtoOutput(
                 updatedUniversity,
                 updatedGeographic,
                 updatedSocials,
-                updatedPrograms
+                updatedPrograms.stream()
+                        .map(this::mapToExchangeProgramDtoOutput)
+                        .toList()
         );
+    }
+
+    private List<UniversitySocials> updateUniversitySocials(Long universityId, UniversityInfo university, List<UniversitySocials> socials) {
+        universitySocialsRepository.deleteByUniversityInfoId(universityId);
+        if (socials == null || socials.isEmpty()) {
+            return Collections.emptyList();
+        }
+        socials.forEach(s -> s.setUniversityInfo(university));
+        return universitySocialsRepository.saveAll(socials);
+    }
+
+    private UniversityGeographic updateUniversityGeographic(Long universityId, UniversityInfo university, UniversityGeographic geographic) {
+        universityGeographicRepository.deleteByUniversityInfoId(universityId);
+        if (geographic == null) {
+            return null;
+        }
+        geographic.setUniversityInfo(university);
+        return universityGeographicRepository.save(geographic);
+    }
+
+    private List<ExchangeProgram> updateExchangePrograms(Long universityId, UniversityInfo university, List<ExchangeProgramDtoInput> programDtos) {
+        // Удаляем старые программы и их условия
+        List<ExchangeProgram> existingPrograms = exchangeProgramRepository.findByUniversityInfoId(universityId);
+        existingPrograms.forEach(program -> {
+            if (program.getProgramCondition() != null) {
+                programConditionRepository.deleteById(program.getProgramCondition().getId());
+            }
+        });
+        exchangeProgramRepository.deleteByUniversityInfoId(universityId);
+
+        if (programDtos == null || programDtos.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return programDtos.stream()
+                .map(programDto -> {
+                    // Сохраняем условия программы
+                    ProgramCondition condition = programConditionRepository.save(programDto.getProgramCondition());
+
+                    AgentFullDto agentDto = kafkaAgentClient.requestAgentByEmail(programDto.getAgentEmail());
+                    // Получаем или создаем агента
+                    Agent agent = agentMapper.toAgent(agentDto);
+
+                    // Создаем и сохраняем программу
+                    ExchangeProgram program = new ExchangeProgram();
+                    program.setName(programDto.getName());
+                    program.setDescription(programDto.getDescription());
+                    program.setRating(programDto.getRating());
+                    program.setAgent(agent);
+                    program.setProgramCondition(condition);
+                    program.setUniversityInfo(university);
+
+                    return exchangeProgramRepository.save(program);
+                })
+                .toList();
+    }
+
+    private Agent getOrCreateAgent(String agentEmail) {
+        return agentRepository.findByEmail(agentEmail)
+                .orElseGet(() -> {
+                    AgentFullDto agentDto = kafkaAgentClient.requestAgentByEmail(agentEmail);
+                    Agent agent = agentMapper.toAgent(agentDto);
+                    Agent savedAgent = agentRepository.save(agent);
+
+                    // Сохраняем контакты агента
+                    if (agentDto.getContacts() != null && !agentDto.getContacts().isEmpty()) {
+                        List<AgentContact> contacts = agentDto.getContacts().stream()
+                                .peek(contactDto -> contactDto.setAgent(savedAgent))
+                                .toList();
+                        contactRepository.saveAll(contacts);
+                    }
+
+                    return savedAgent;
+                });
+    }
+
+    private ExchangeProgramDtoOutput mapToExchangeProgramDtoOutput(ExchangeProgram program) {
+        ExchangeProgramDtoOutput dto = new ExchangeProgramDtoOutput();
+        dto.setId(program.getId());
+        dto.setName(program.getName());
+        dto.setDescription(program.getDescription());
+        dto.setRating(program.getRating());
+        dto.setProgramCondition(program.getProgramCondition());
+
+        Agent agent = program.getAgent();
+        if (agent != null) {
+            AgentFullDto agentDto = new AgentFullDto();
+            agentDto.setAgentId(agent.getId());
+            agentDto.setEmail(agent.getEmail());
+            agentDto.setFirstName(agent.getFirstName());
+            agentDto.setSurname(agent.getSurname());
+            agentDto.setLastName(agent.getLastName());
+            agentDto.setAvatar(agent.getAvatar());
+            agentDto.setUniversity(agent.getUniversity());
+            dto.setAgent(agentDto);
+        }
+
+        return dto;
     }
 
     @Override
@@ -186,7 +296,14 @@ public class UniversityServiceImpl implements UniversityService {
         List<UniversitySocials> socials = universitySocialsRepository.findByUniversityInfoId(universityId);
         List<ExchangeProgram> programs = exchangeProgramRepository.findByUniversityInfoId(universityId);
 
-        return universityMapper.toUniversityFullDto(university, geographic, socials, programs);
+        return universityMapper.toUniversityFullDtoOutput(
+                university,
+                geographic,
+                socials,
+                programs.stream()
+                        .map(this::mapToExchangeProgramDtoOutput)
+                        .toList()
+        );
     }
 
     @Override
@@ -195,23 +312,45 @@ public class UniversityServiceImpl implements UniversityService {
         List<UniversityInfo> universityList = universityInfoRepository.findAll(pageRequest).toList();
 
         if (universityList.isEmpty()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         List<Long> universityIds = universityList.stream()
                 .map(UniversityInfo::getId)
-                .collect(Collectors.toList());
+                .toList();
 
-        List<UniversitySocials> allSocials = universitySocialsRepository.findByUniversityInfoIdIn(universityIds);
-        List<UniversityGeographic> allGeographic = universityGeographicRepository.findByUniversityInfoIdIn(universityIds);
-        List<ExchangeProgram> allPrograms = exchangeProgramRepository.findByUniversityInfoIdIn(universityIds);
+        Map<Long, UniversityGeographic> geographicMap = universityGeographicRepository.findByUniversityInfoIdIn(universityIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        geo -> geo.getUniversityInfo().getId(),
+                        Function.identity()));
 
-        return universityMapper.toUniversityFullDtoList(
-                universityList,
-                allGeographic,
-                allPrograms,
-                allSocials
-        );
+        Map<Long, List<UniversitySocials>> socialsMap = universitySocialsRepository.findByUniversityInfoIdIn(universityIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        social -> social.getUniversityInfo().getId()));
+
+        Map<Long, List<ExchangeProgram>> programsMap = exchangeProgramRepository.findByUniversityInfoIdIn(universityIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        program -> program.getUniversityInfo().getId()));
+
+        return universityList.stream()
+                .map(university -> {
+                    UniversityGeographic geographic = geographicMap.get(university.getId());
+                    List<UniversitySocials> socials = socialsMap.getOrDefault(university.getId(), Collections.emptyList());
+                    List<ExchangeProgram> programs = programsMap.getOrDefault(university.getId(), Collections.emptyList());
+
+                    return universityMapper.toUniversityFullDtoOutput(
+                            university,
+                            geographic,
+                            socials,
+                            programs.stream()
+                                    .map(this::mapToExchangeProgramDtoOutput)
+                                    .toList()
+                    );
+                })
+                .toList();
     }
 
     @Override
