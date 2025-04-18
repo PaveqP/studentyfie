@@ -1,9 +1,10 @@
-import {PageWrapper, MainHeader} from "../../components"
+import {FC} from "react"
+import {PageWrapper, MainHeader, ExchangeProgramList} from "../../components"
 
-const Main = () => {
+const Main: FC = () => {
     return (
         <PageWrapper header={<MainHeader />}>
-            <div>...text</div>
+            <ExchangeProgramList />
         </PageWrapper>
     )
 }
